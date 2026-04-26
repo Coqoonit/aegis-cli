@@ -1,0 +1,38 @@
+{
+  "name": "aegis-cli",
+  "version": "0.1.0",
+  "description": "CLI for interacting with Aegis AML APIs. Designed for use with primary LLMs (Claude, GPT-4, Gemini) via tool use.",
+  "type": "module",
+  "bin": {
+    "aegis": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "examples",
+    "MANUAL.md",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^7.2.1",
+    "citty": "^0.1.6",
+    "env-paths": "^3.0.0",
+    "p-limit": "^6.2.0",
+    "zod": "^3.24.1",
+    "zod-to-json-schema": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
