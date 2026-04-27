@@ -5,6 +5,19 @@ import { inferSafety, TOOL_HINTS, type XAegisHints } from "../hints-registry.js"
 
 export type ManifestFormat = "anthropic" | "openai" | "raw";
 
+/**
+ * Top-level commands that are local plumbing, not API actions. They must be
+ * filtered out of every public discovery surface (JSON manifest, MCP
+ * tools/list) so an LLM can never be told to invoke them as a "tool". In
+ * particular, `mcp` would start a stdio server and hang.
+ */
+export const META_COMMANDS: ReadonlySet<string> = new Set([
+  "schema",
+  "docs",
+  "completions",
+  "mcp",
+]);
+
 interface JsonSchemaObject {
   type: "object";
   properties: Record<string, unknown>;
@@ -91,6 +104,7 @@ function argsToProperties(
 function buildInputSchema(
   cmd: CommandDef,
   bodySchema: ZodTypeAny | undefined,
+  bodyRequired: boolean,
 ): JsonSchemaObject {
   const args = cmd.args ?? {};
   const { properties, required } = argsToProperties(args);
@@ -104,6 +118,12 @@ function buildInputSchema(
     // Strip top-level $schema key (not needed nested)
     delete converted.$schema;
     properties.data = converted;
+    // Most commands in BODY_SCHEMAS call `readJsonData(args.data, ...)` which
+    // throws when --data is missing. Surface that contract in the manifest so
+    // LLM clients fail at request-construction time rather than at runtime.
+    // A small set of commands accept --data optionally (see OPTIONAL_BODY_COMMANDS):
+    // for those, the runtime falls back to `{}`, so we leave `data` non-required.
+    if (bodyRequired && !required.includes("data")) required.push("data");
   }
 
   const schema: JsonSchemaObject = {
@@ -119,6 +139,7 @@ function buildInputSchema(
 export function walkCommandTree(
   root: CommandDef,
   registry: BodySchemaRegistry,
+  optionalBodies: ReadonlySet<string> = new Set(),
   basePath: string[] = [],
   namePrefix = "aegis",
 ): ToolManifestEntry[] {
@@ -136,12 +157,15 @@ export function walkCommandTree(
     const path = [...basePath, cmdName];
 
     if (cmd.subCommands) {
-      entries.push(...walkCommandTree(cmd, registry, path, namePrefix));
+      entries.push(
+        ...walkCommandTree(cmd, registry, optionalBodies, path, namePrefix),
+      );
       continue;
     }
 
     const key = path.join(".");
     const bodySchema = registry[key];
+    const bodyRequired = bodySchema !== undefined && !optionalBodies.has(key);
     const name = [namePrefix, ...path].join("_").replace(/-/g, "_");
     assertValidToolName(name);
     const description =
@@ -164,7 +188,7 @@ export function walkCommandTree(
       name,
       path,
       description,
-      inputSchema: buildInputSchema(cmd, bodySchema),
+      inputSchema: buildInputSchema(cmd, bodySchema, bodyRequired),
       xAegis,
     });
   }

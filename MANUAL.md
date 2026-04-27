@@ -198,9 +198,35 @@ To interact with Aegis, use the `aegis` command:
 - Default API: `http://localhost:3000` (override via `AEGIS_API_URL`)
 ```
 
-### Scenario C — MCP server (planned)
+### Scenario C — MCP server (built-in)
 
-A future `aegis-mcp` wrapper will expose commands as MCP tools for Claude Desktop, Cursor, etc. Not yet implemented.
+The CLI doubles as a Model Context Protocol stdio server. Run `aegis mcp` and
+the process speaks JSON-RPC over stdin/stdout — every aegis command is exposed
+as a native MCP tool. The same input schemas, descriptions, and `x_aegis`
+hints that `aegis schema` returns are advertised over MCP.
+
+Wire it into Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "aegis": {
+      "command": "aegis",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+Auth is shared with the CLI: log in once via `aegis auth login` and the MCP
+server reuses the same credential file. Override the API URL or other
+env vars by adding an `"env"` block in the config.
+
+Internally, each tool call spawns a child `aegis <subcommand>` process. This
+means the same retry, timeout, refresh, and error-envelope behavior the CLI
+provides applies to MCP calls verbatim — including non-zero exit codes that
+are surfaced as `isError: true` MCP responses with the JSON envelope as the
+`text` content.
 
 ---
 

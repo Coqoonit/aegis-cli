@@ -3,12 +3,13 @@ import {
   emitAnthropic,
   emitOpenAI,
   emitRaw,
+  META_COMMANDS,
   walkCommandTree,
   type ManifestFormat,
 } from "../lib/manifest.js";
 import { ValidationError } from "../lib/errors.js";
 import { emit, handleError } from "../lib/output.js";
-import { BODY_SCHEMAS } from "../schema-registry.js";
+import { BODY_SCHEMAS, OPTIONAL_BODY_COMMANDS } from "../schema-registry.js";
 
 type MainFactory = () => CommandDef;
 
@@ -40,12 +41,11 @@ export function defineSchemaCommand(mainFactory: MainFactory) {
         }
 
         const root = mainFactory();
-        const tools = walkCommandTree(root, BODY_SCHEMAS);
+        const tools = walkCommandTree(root, BODY_SCHEMAS, OPTIONAL_BODY_COMMANDS);
 
-        // Drop meta commands (schema, docs) from the manifest — they don't hit the API.
-        const filtered = tools.filter(
-          (t) => t.path[0] !== "schema" && t.path[0] !== "docs",
-        );
+        // Drop meta commands (schema/docs/completions/mcp) — they aren't API
+        // actions and must not be advertised as callable tools.
+        const filtered = tools.filter((t) => !META_COMMANDS.has(t.path[0]!));
 
         let output: unknown;
         switch (format) {

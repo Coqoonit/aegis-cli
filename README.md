@@ -122,6 +122,31 @@ To interact with Aegis, use the `aegis` command:
 
 The agent will discover everything else by running `aegis docs` itself.
 
+### Claude Desktop / any MCP client
+
+The CLI ships with an embedded MCP (Model Context Protocol) server. After
+`aegis auth login`, drop this into your MCP client config (Claude Desktop:
+`~/Library/Application Support/Claude/claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "aegis": {
+      "command": "aegis",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+Restart the client. Every aegis command (70+) shows up as a native tool — no
+shell access needed, no manifest copy/paste, no integration code. The server
+shares the same `~/Library/Preferences/aegis/config.json` as the CLI, so login
+state is unified.
+
+Pass `AEGIS_API_URL` (and any other env var) by adding an `"env"` block to the
+config above.
+
 ---
 
 ## Domain coverage
@@ -141,7 +166,7 @@ The agent will discover everything else by running `aegis docs` itself.
 | `magic` | list, create, delete | External form-collection links |
 | `deadlines` | list, stats, overdue, upcoming, dashboard, create, update, delete | System-generated + custom |
 
-Plus three meta-commands: `schema`, `docs`, `completions`.
+Plus four meta-commands: `schema`, `docs`, `completions`, `mcp`.
 
 ---
 
@@ -230,7 +255,6 @@ Auto-generated from the live command tree, so they stay current as the CLI grows
 - CI / npm publish workflow
 - Standalone binaries (Bun compile) for users without Node installed
 - Homebrew tap
-- MCP wrapper for Claude Desktop / Cursor (would let those clients auto-discover all tools)
 
 ---
 

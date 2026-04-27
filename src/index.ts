@@ -14,6 +14,7 @@ import ids from "./commands/ids/index.js";
 import magic from "./commands/magic/index.js";
 import { defineCompletionsCommand } from "./commands/completions.js";
 import docs from "./commands/docs.js";
+import { defineMcpCommand } from "./commands/mcp.js";
 import risk from "./commands/risk/index.js";
 import { defineSchemaCommand } from "./commands/schema.js";
 import screenings from "./commands/screenings/index.js";
@@ -50,6 +51,7 @@ const main: CommandDef = defineCommand({
     schema: defineSchemaCommand(() => main),
     docs,
     completions: defineCompletionsCommand(() => main),
+    mcp: defineMcpCommand(() => main),
   },
 });
 
