@@ -3,13 +3,17 @@ import { clearAuth, getAccessToken, getRefreshToken, setTokens } from "./auth-st
 import { getApiUrl } from "./config.js";
 import { ApiError, type ApiErrorResponse } from "./errors.js";
 
+// Endpoints that don't require an Authorization header. Hitting them
+// without a JWT must NOT trigger the silent refresh / clearAuth path.
+// Includes the passwordless primitives: refresh, logout, magic-link
+// request/verify/consume, PAT exchange.
 const PUBLIC_AUTH_PATHS = new Set([
-  "/auth/login",
   "/auth/refresh",
   "/auth/logout",
-  "/auth/request-password-reset",
-  "/auth/reset-password",
-  "/auth/verify-reset-token",
+  "/auth/login-link/request",
+  "/auth/login-link/verify",
+  "/auth/login-link/consume",
+  "/auth/access-token/exchange",
 ]);
 
 const IDEMPOTENT_METHODS = new Set(["GET", "HEAD", "PUT", "DELETE", "OPTIONS"]);

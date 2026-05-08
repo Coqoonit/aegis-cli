@@ -1,22 +1,8 @@
 import { z } from "zod";
-import { EmailSchema, IdSchema, PasswordSchema } from "./common.js";
-
-export const LoginSchema = z.object({
-  email: EmailSchema,
-  password: z.string().min(1, "Password is required"),
-});
+import { EmailSchema, IdSchema } from "./common.js";
 
 export const RefreshTokenSchema = z.object({
   refreshToken: z.string().min(1),
-});
-
-export const RequestPasswordResetSchema = z.object({
-  email: EmailSchema,
-});
-
-export const ResetPasswordSchema = z.object({
-  token: z.string().min(1),
-  password: PasswordSchema,
 });
 
 export const InviteUserSchema = z.object({
@@ -24,6 +10,31 @@ export const InviteUserSchema = z.object({
   firstName: z.string().min(1).max(100).trim(),
   lastName: z.string().min(1).max(100).trim(),
   roleId: IdSchema.optional(),
+});
+
+// ─── Passwordless: login link (magic link via email) ─────────────────────────
+
+export const RequestLoginLinkSchema = z.object({
+  email: EmailSchema,
+});
+
+export const ConsumeLoginLinkSchema = z.object({
+  token: z.string().min(32).max(128),
+});
+
+export const LoginLinkVerifyResponseSchema = z.object({
+  valid: z.boolean(),
+  reason: z.enum(["invalid", "expired", "used"]).nullable(),
+});
+
+// ─── Personal Access Token (PAT) ─────────────────────────────────────────────
+
+export const RegeneratePatSchema = z.object({
+  name: z.string().min(1).max(120).trim().optional(),
+});
+
+export const ExchangePatSchema = z.object({
+  token: z.string().min(64).max(160),
 });
 
 export const AuthTokensSchema = z.object({
