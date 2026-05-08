@@ -12,8 +12,11 @@ CLI for interacting with the Aegis AML API. Designed for end-users driving workf
 # Install (once published)
 npm install -g aegis-cli
 
-# Authenticate
-aegis auth login --email you@example.it
+# Authenticate (passwordless — Personal Access Token)
+aegis auth use-pat --token aegis_pat_<...>
+# or via single-use email magic link:
+#   aegis auth request-login-link --email you@example.it
+#   aegis auth consume-login-link --token <hex-from-email-fragment>
 
 # Explore
 aegis --help
@@ -50,17 +53,46 @@ Precedence for `apiUrl`: `AEGIS_API_URL` env > `config.apiUrl` > default.
 
 ## Authentication
 
+Aegis is **passwordless** — there is no password to type. Two bootstrap flows:
+
+### A. Personal Access Token (recommended for CLI / agent / unattended)
+
+A PAT is a long-lived `aegis_pat_<64hex>` credential bound to your user. Exactly **one active PAT per user** — regenerating atomically invalidates the previous one. The plain token is shown ONCE at generation; only its SHA-256 hash is persisted.
+
 ```bash
-aegis auth login                      # prompts email/password in TTY
-aegis auth login --email you@x.it --password 's3cret'
-aegis auth logout                     # revokes refresh token server-side + clears local
-aegis auth refresh                    # manual refresh (automatic happens on 401)
+# 1. Generate (web UI: Impostazioni → Personal Access Token, or — once
+#    already authenticated — `aegis auth regenerate-pat`)
+aegis auth regenerate-pat --name "macbook-cli"
+
+# 2. Exchange for a JWT + refresh-token pair, stored locally
+aegis auth use-pat --token aegis_pat_<...>     # explicit
+aegis auth use-pat                             # interactive secret prompt
+
+# 3. PAT lifecycle
+aegis auth show-pat                            # metadata (createdAt, lastUsedAt, name) — no token
+aegis auth regenerate-pat --name "ci-runner"   # rotate (old PAT invalidated)
+aegis auth revoke-pat                          # delete (idempotent)
+```
+
+### B. Magic link (interactive, fully CLI)
+
+```bash
+aegis auth request-login-link --email you@x.it    # always 200 (no email enumeration)
+# Open the email, copy the token from the URL fragment (after `#token=`)
+aegis auth consume-login-link --token <hex>       # mints JWT + refresh
+```
+
+### Session management
+
+```bash
+aegis auth refresh   # manual refresh — automatic happens on 401
+aegis auth logout    # clears local JWT + refresh (PAT in DB is untouched)
 ```
 
 **Silent refresh**: on any 401 or auth-related 403, the CLI refreshes once and retries. If the retry still fails auth, local credentials are cleared — next command prompts re-login.
 
-Public auth endpoints (do not require a token):
-`login`, `logout`, `refresh`, `request-password-reset`, `reset-password`, `verify-reset-token`.
+**Public auth endpoints** (no token required, used during bootstrap):
+`request-login-link`, `verify-login-link`, `consume-login-link`, `access-token/exchange` (`use-pat`), `refresh`, `logout`.
 
 ---
 
@@ -83,7 +115,7 @@ Public auth endpoints (do not require a token):
 |---|---|
 | 0 | OK |
 | 1 | Generic error |
-| 2 | Not authenticated — run `aegis auth login` |
+| 2 | Not authenticated — run `aegis auth use-pat` (PAT) or `aegis auth request-login-link` (magic link) |
 | 3 | Local validation error (Zod) |
 | 4 | API error (non-2xx from backend) |
 | 5 | Network error (DNS, connection refused, timeout) |
@@ -218,9 +250,9 @@ Wire it into Claude Desktop (`~/Library/Application Support/Claude/claude_deskto
 }
 ```
 
-Auth is shared with the CLI: log in once via `aegis auth login` and the MCP
-server reuses the same credential file. Override the API URL or other
-env vars by adding an `"env"` block in the config.
+Auth is shared with the CLI: bootstrap once via `aegis auth use-pat` (or the
+magic-link flow) and the MCP server reuses the same credential file. Override
+the API URL or other env vars by adding an `"env"` block in the config.
 
 Internally, each tool call spawns a child `aegis <subcommand>` process. This
 means the same retry, timeout, refresh, and error-envelope behavior the CLI
@@ -327,7 +359,7 @@ Short-lived URLs that let an external user (typically a UBO) fill in a specific 
 
 ## Typical workflows
 
-All examples assume you've already authenticated with `aegis auth login`.
+All examples assume you've already authenticated (`aegis auth use-pat` or the magic-link flow — see the [Authentication](#authentication) section).
 
 ### 1. Onboard a natural-person client
 

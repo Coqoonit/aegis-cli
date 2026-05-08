@@ -56,21 +56,43 @@ npm install -g aegis-cli
 
 ## Quick start
 
-```bash
-# 1. Authenticate against your Aegis tenant
-aegis auth login --email you@example.it
-# (prompts for password if not provided)
+Aegis is **passwordless**. Two ways to bootstrap a CLI session:
 
-# 2. List your clients
+### Recommended: Personal Access Token (long-lived)
+
+```bash
+# 1a. Generate a PAT in the web UI: Impostazioni → Personal Access Token
+#     (or the LLM-driven flow below). The plain token is shown ONCE.
+
+# 1b. Hand it to the CLI (exchanges for JWT + refresh, stored locally)
+aegis auth use-pat --token aegis_pat_<...>
+# or interactive (no token in shell history):
+aegis auth use-pat
+```
+
+### Alternative: magic link (short, fully CLI)
+
+```bash
+# 1. Email a single-use login link (always 200 — no email enumeration)
+aegis auth request-login-link --email you@example.it
+
+# 2. Open the email, copy the token from the URL fragment (after `#token=`)
+aegis auth consume-login-link --token <hex>
+```
+
+Then drive Aegis:
+
+```bash
+# List your clients
 aegis clients list --limit 5 --pretty
 
-# 3. Open a new case
+# Open a new case
 aegis cases create --data '{
   "clientId": "c_abc...",
   "engagementType": "ASSISTENZA_TRIBUTARIA"
 }'
 
-# 4. Explore
+# Explore
 aegis --help
 aegis docs                    # full manual
 aegis schema --format anthropic --pretty | head -40
@@ -125,7 +147,8 @@ The agent will discover everything else by running `aegis docs` itself.
 ### Claude Desktop / any MCP client
 
 The CLI ships with an embedded MCP (Model Context Protocol) server. After
-`aegis auth login`, drop this into your MCP client config (Claude Desktop:
+authenticating (`aegis auth use-pat` or the magic-link flow above), drop this
+into your MCP client config (Claude Desktop:
 `~/Library/Application Support/Claude/claude_desktop_config.json`):
 
 ```json
@@ -153,7 +176,7 @@ config above.
 
 | Domain | Commands | Notes |
 |---|---|---|
-| `auth` | login, logout, refresh, request-password-reset, reset-password, verify-reset-token, invite | JWT + silent refresh |
+| `auth` | request-login-link, verify-login-link, consume-login-link, use-pat, show-pat, regenerate-pat, revoke-pat, refresh, logout, invite | Passwordless (magic link / PAT) + silent refresh |
 | `clients` | list, get, create, update, archive, set-pep | Natural persons and legal entities |
 | `cases` | list, get, create, update, approve, delete, set-risk-flags | AML "fascicoli di adeguata verifica" |
 | `ubos` | list, create, resolve, delete | Manual or auto-resolution via business registry |
