@@ -516,10 +516,17 @@ aegis magic create --data '{
   "targetName": "Luigi Bianchi",
   "expiryHours": 168
 }'
-# → { "id": "ml_222", "url": "https://.../m/<token>" }
+# → { "id": "ml_222", "token": "<64-char hex>", "formType": "...", "expiresAt": "..." }
+#
+# The plain `token` is ONLY returned here — it's stored hashed (SHA-256) at
+# rest and `magic list` never returns it. If you lose it, regenerate the link.
+# Build the shareable URL with the fragment form:
+#   https://app.aegis.example/magic#token=<token>
+# (Fragment — not path — so the token doesn't leak to access logs / Referer.)
+# `targetEmail` triggers a best-effort email; the URL above is for manual sharing.
 
-# Send that URL to the UBO via email. When they submit (public endpoint,
-# out of CLI scope), the form is populated automatically.
+# When the recipient submits (public endpoint, out of CLI scope), the form
+# is populated automatically.
 
 # Revoke early if needed
 aegis magic delete ml_222 --yes

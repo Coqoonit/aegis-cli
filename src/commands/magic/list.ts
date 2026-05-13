@@ -6,7 +6,7 @@ import { requireCuid } from "../../lib/validation.js";
 export default defineCommand({
   meta: {
     name: "list",
-    description: "List magic links for a case (external form collection tokens).",
+    description: "List magic links for a case. Returns metadata only — the plain token is shown once at creation and never returned again (hashed at rest). To re-share a link, use `magic create` to issue a new one.",
   },
   args: {
     case: { type: "string", required: true, description: "Case ID" },

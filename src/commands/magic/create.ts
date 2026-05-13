@@ -8,7 +8,7 @@ export default defineCommand({
   meta: {
     name: "create",
     description:
-      "Create a magic link to let an external user (e.g. UBO) fill a form without logging in. Returns the URL to share. Default expiry 72h, max 720h (30 days).",
+      "Create a magic link to let an external user (e.g. UBO) fill a form without logging in. Returns the plain `token` ONCE — it is hashed at rest and `magic list` never returns it again. Build the shareable URL as `<APP_URL>/magic#token=<token>` (fragment, not path, so the token doesn't leak to logs/Referer). Default expiry 72h, max 720h (30 days).",
   },
   args: {
     data: {
