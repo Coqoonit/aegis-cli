@@ -177,7 +177,8 @@ async function rawFetch<T>(
       response.status === 401 ||
       (response.status === 403 &&
         bodyCode !== "FORBIDDEN" &&
-        bodyCode !== "SUBSCRIPTION_REQUIRED");
+        bodyCode !== "SUBSCRIPTION_REQUIRED" &&
+        bodyCode !== "PRIVACY_CONSENT_REQUIRED");
 
     if (isAuthExpiry && !isPublicAuthPath) {
       if (!state.refreshed) {

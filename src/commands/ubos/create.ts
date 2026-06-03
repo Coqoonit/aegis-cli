@@ -16,7 +16,7 @@ export default defineCommand({
     data: {
       type: "string",
       description:
-        "UBO payload as JSON. Required: firstName, lastName, controlType. Optional: fiscalCode, birthDate, birthPlace, nationality, ownershipPercentage, directShare, indirectShare, sourceEntityName, sourceEntityFiscalCode, depth, isPep, pepDetails, highRiskCountry, notes, participationChain.",
+        "UBO payload as JSON. Required: firstName, lastName, controlType. Optional: fiscalCode, birthDate, birthPlace, nationality, ownershipPercentage, directShare, indirectShare, sourceEntityName, sourceEntityFiscalCode, depth, isPep, pepDetails, highRiskCountry, notes, participationChain, isLegalRepresentative (mark as AV.4 art.22 signer; at least one LR is required per case for the dossier).",
     },
     "dry-run": {
       type: "boolean",

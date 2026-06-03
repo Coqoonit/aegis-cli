@@ -1,4 +1,5 @@
 import { defineCommand } from "citty";
+import acceptTerms from "./accept-terms.js";
 import consumeLoginLink from "./consume-login-link.js";
 import invite from "./invite.js";
 import logout from "./logout.js";
@@ -34,6 +35,7 @@ export default defineCommand({
     "show-pat": showPat,
     "regenerate-pat": regeneratePat,
     "revoke-pat": revokePat,
+    "accept-terms": acceptTerms,
     refresh,
     logout,
     invite,

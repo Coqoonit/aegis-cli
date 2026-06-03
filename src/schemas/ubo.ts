@@ -27,6 +27,9 @@ export const CreateUBOSchema = z.object({
   pepDetails: z.string().max(2000).trim().optional(),
   highRiskCountry: z.boolean().default(false),
   notes: z.string().max(5000).trim().optional(),
+  // Marks this UBO as the Legal Representative (signer of AV.4 art. 22).
+  // Backend requires at least one LR per case for the dossier to be complete.
+  isLegalRepresentative: z.boolean().default(false),
 });
 
 export const ResolveUBOSchema = z.object({

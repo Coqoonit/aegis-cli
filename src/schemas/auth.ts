@@ -27,6 +27,13 @@ export const LoginLinkVerifyResponseSchema = z.object({
   reason: z.enum(["invalid", "expired", "used"]).nullable(),
 });
 
+// ─── Consent gate (accept Privacy Policy / ToS) ──────────────────────────────
+
+export const AcceptTermsSchema = z.object({
+  privacyAccepted: z.literal(true),
+  marketingConsent: z.boolean().optional(),
+});
+
 // ─── Personal Access Token (PAT) ─────────────────────────────────────────────
 
 export const RegeneratePatSchema = z.object({

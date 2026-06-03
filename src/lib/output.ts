@@ -11,6 +11,8 @@ const ERROR_CODE_HINTS: Record<string, string> = {
   FORBIDDEN: "Your role does not have permission for this operation.",
   SUBSCRIPTION_REQUIRED:
     "Active subscription required. Access the billing portal in the web app.",
+  PRIVACY_CONSENT_REQUIRED:
+    "Privacy Policy / Terms of Service not yet accepted. Run `aegis auth accept-terms` to consent before continuing.",
   NOT_FOUND: "Verify the resource ID with a corresponding `list` or `get` command.",
   CLIENT_NOT_FOUND: "Run `aegis clients list` to see available client IDs.",
   CASE_NOT_FOUND:
